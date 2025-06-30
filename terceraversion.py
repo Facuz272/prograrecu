@@ -564,7 +564,90 @@ def baja_evento():
     else:
         print("Operación cancelada.")
 
+def reporte_ventas_por_show():
+    """Muestra la cantidad total de entradas vendidas por show (Artista–Fecha–Sector),
+    filtrando únicamente aquellos shows que aún existen en el sistema."""
+    ventas = {}
+    try:
+        with open("usuarios.txt", "rt", encoding="utf-8") as f:
+            for linea in f:
+                partes = linea.strip().split(";", 2)
+                if len(partes) < 3 or not partes[2]:
+                    continue
+                for s in partes[2].split(","):
+                    if not s:
+                        continue
+                    campos = s.split("-")
+                    if len(campos) != 4:
+                        continue
+                    art, fecha, sector, cant = campos
+                    # Verificar que el show todavía exista en eventos
+                    existe = any(
+                        ev["Artista"] == art
+                        and fecha in ev["Fechas"]
+                        and sector in ev["Fechas"][fecha]
+                        for ev in eventos.values()
+                    )
+                    if not existe:
+                        continue
+                    try:
+                        cantidad = int(cant)
+                    except ValueError:
+                        continue
+                    clave = f"{art} | {fecha} | {sector}"
+                    ventas[clave] = ventas.get(clave, 0) + cantidad
+    except FileNotFoundError:
+        print("⚠️ No se encontró usuarios.txt. Aún no hay ventas.")
+        return
 
+    print("\n📊 Ventas por show:")
+    if not ventas:
+        print("  (sin ventas registradas aún)")
+    else:
+        for show, total in ventas.items():
+            print(f" - {show}: {total} entradas vendidas")
+    print()
+def reporte_ventas_por_evento():
+    """Muestra la cantidad total de entradas vendidas por evento (Artista–Fecha)."""
+    ventas = {}
+    try:
+        with open("usuarios.txt", "rt", encoding="utf-8") as f:
+            for linea in f:
+                partes = linea.strip().split(";", 2)
+                if len(partes) < 3 or not partes[2]:
+                    continue
+                for s in partes[2].split(","):
+                    if not s:
+                        continue
+                    campos = s.split("-")
+                    if len(campos) != 4:
+                        continue
+                    art, fecha, sector, cant = campos
+                    # Verificamos que el evento siga existiendo:
+                    existe = any(
+                        ev["Artista"] == art
+                        and fecha in ev["Fechas"]
+                        for ev in eventos.values()
+                    )
+                    if not existe:
+                        continue
+                    try:
+                        cantidad = int(cant)
+                    except ValueError:
+                        continue
+                    clave = f"{art} | {fecha}"
+                    ventas[clave] = ventas.get(clave, 0) + cantidad
+    except FileNotFoundError:
+        print("⚠️ No se encontró usuarios.txt. Aún no hay ventas.")
+        return
+
+    print("\n📊 Ventas por evento:")
+    if not ventas:
+        print("  (sin ventas registradas aún)")
+    else:
+        for evento, total in ventas.items():
+            print(f" - {evento}: {total} entradas vendidas")
+    print()
 
 
 def bajar_sector():
@@ -735,14 +818,13 @@ def procesar_opcion_ver_artistas():
 
 
 def proceder_con_compra(artista_id):
-    """Permite al usuario proceder con la compra de entradas."""
+    """Permite al usuario proceder con la compra de entradas (con simulación de pago)."""
     global dni_usuario
     evento = eventos[str(artista_id)]
     fechas = list(evento["Fechas"].keys())
 
     # --- Selección de fecha ---
     if len(fechas) == 1:
-        # cuando sólo hay una fecha, nos ahorramos el listado
         fecha_seleccionada = fechas[0]
         print(f"🔹 Sólo hay una fecha: {fecha_seleccionada}")
     else:
@@ -751,7 +833,7 @@ def proceder_con_compra(artista_id):
             print(f"  {i}. {f}")
         idx = int(input("Fecha (0 para volver): "))
         if idx == 0:
-            return  # volvemos al menú anterior
+            return
         while idx < 1 or idx > len(fechas):
             print("Opción inválida.")
             idx = int(input("Fecha (0 para volver): "))
@@ -790,22 +872,46 @@ def proceder_con_compra(artista_id):
         if cantidad == 0:
             return
 
+    # --- Simulación de pago ---
+    print("\nIngrese datos de tarjeta (modo demostración):")
+    tarjeta = input("  Tarjeta (16 dígitos): ")
+    while not (tarjeta.isdigit() and len(tarjeta) == 16):
+        print("Número de tarjeta inválido.")
+        tarjeta = input("  Tarjeta (16 dígitos): ")
+
+    venc = input("  Vencimiento (MM/AA): ")
+    def valid_venc(v):
+        parts = v.split('/')
+        return (
+            len(parts) == 2
+            and parts[0].isdigit() and parts[1].isdigit()
+            and 1 <= int(parts[0]) <= 12
+            and len(parts[1]) == 2
+        )
+    while not valid_venc(venc):
+        print("Formato de vencimiento inválido.")
+        venc = input("  Vencimiento (MM/AA): ")
+
+    cvv = input("  CVV (3 dígitos): ")
+    while not (cvv.isdigit() and len(cvv) == 3):
+        print("CVV inválido.")
+        cvv = input("  CVV (3 dígitos): ")
+
+    print("\nProcesando pago... ✅ Pago autorizado (modo demostración)")
+
     # --- Actualizar stock en JSON ---
     evento["Fechas"][fecha_seleccionada][sector]["Disponibilidad"] -= cantidad
     guardar_eventos(eventos)
 
     # --- Registrar la compra en usuarios.txt ---
     try:
-        # Leemos todas las líneas
         with open("usuarios.txt", "rt", encoding="utf-8") as f:
             lines = f.readlines()
-
         out = []
         for line in lines:
             dni, nombre, shows_str = line.rstrip("\n").split(";", 2)
             if dni == dni_usuario:
                 shows = shows_str.split(",") if shows_str else []
-                # Buscamos un show existente mismo artista+fecha+sector
                 found = False
                 for i, s in enumerate(shows):
                     if s.startswith(f"{evento['Artista']}-{fecha_seleccionada}-{sector}"):
@@ -819,11 +925,8 @@ def proceder_con_compra(artista_id):
                 out.append(f"{dni};{nombre};{','.join(shows)}\n")
             else:
                 out.append(line)
-
-        # Reescribimos todo el archivo
         with open("usuarios.txt", "wt", encoding="utf-8") as f:
             f.writelines(out)
-
     except Exception as e:
         print("Error al registrar la compra:", e)
         return
@@ -892,11 +995,13 @@ def mostrar_menu_administrador():
         print("[6] Baja sector")
         print("[7] Agregar fecha")
         print("[8] Baja evento")
+        print("[9] Ventas por sector")
+        print("[10] Ventas por evento")
         print("---------------------------")
         print("[0] Salir")
         print("---------------------------")
         opcion_administrador = validar_opcion_menu(
-            ["1", "2", "3", "4", "5", "6", "7", "8", "0"]
+            ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"]
         )
 
         if opcion_administrador == "1":
@@ -915,6 +1020,12 @@ def mostrar_menu_administrador():
             agregar_fecha()
         elif opcion_administrador == "8":
             baja_evento()
+        elif opcion_administrador == "9":
+            reporte_ventas_por_show()
+        elif opcion_administrador == "10":
+            reporte_ventas_por_evento()
+
+
 
 
 def es_bisiesto(año):
@@ -1046,7 +1157,7 @@ def mostrar_usuarios():
         print("El archivo usuarios.txt no existe.")
     finally:
         archivo.close()
-        
+
 def opcion_de_ingreso():
     global dni_usuario  # <<--- también clave aquí
     opcion_inicio = validar_opcion_menu(["1", "2"])
