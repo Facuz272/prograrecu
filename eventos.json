@@ -1,62 +1,74 @@
 {
-    "1": {
-        "Artista": "Shakira",
-        "Sede": "Estadio Monumental",
-        "Fechas": {
-            "20/07/25": {
-                "Campo": {
-                    "Precio": 85000,
-                    "Disponibilidad": 81
-                },
-                "Platea Alta": {
-                    "Precio": 100000,
-                    "Disponibilidad": 43567
-                },
-                "Platea Baja": {
-                    "Precio": 75000,
-                    "Disponibilidad": 45
-                }
-            }
+  "1": {
+    "Artista": "Shakira",
+    "Sede": "Estadio Monumental",
+    "Fechas": {
+      "20/07/25": {
+        "Campo": {
+          "Precio": 85000,
+          "Disponibilidad": 30000
+        },
+        "Platea Alta": {
+          "Precio": 100000,
+          "Filas": 70,
+          "Columnas": 200,
+          "Disponibilidad": 14000
+        },
+        "Platea Baja": {
+          "Precio": 75000,
+          "Filas": 50,
+          "Columnas": 300,
+          "Disponibilidad": 15000
         }
-    },
-    "2": {
-        "Artista": "Coldplay",
-        "Sede": "Estadio Monumental",
-        "Fechas": {
-            "20/07/25": {
-                "Campo": {
-                    "Precio": 90000,
-                    "Disponibilidad": 94
-                },
-                "Platea Alta": {
-                    "Precio": 70000,
-                    "Disponibilidad": 59
-                },
-                "Platea Baja": {
-                    "Precio": 80000,
-                    "Disponibilidad": 60
-                }
-            }
-        }
-    },
-    "3": {
-        "Artista": "Coldplay",
-        "Sede": "Estadio Único La Plata",
-        "Fechas": {
-            "21/07/25": {
-                "Campo": {
-                    "Precio": 75000,
-                    "Disponibilidad": 78
-                },
-                "Platea Alta": {
-                    "Precio": 60000,
-                    "Disponibilidad": 40
-                },
-                "Platea Baja": {
-                    "Precio": 70000,
-                    "Disponibilidad": 40
-                }
-            }
-        }
+      }
     }
+  },
+  "2": {
+    "Artista": "Coldplay",
+    "Sede": "Estadio Monumental",
+    "Fechas": {
+      "20/07/25": {
+        "Campo": {
+          "Precio": 90000,
+          "Disponibilidad": 30000
+        },
+        "Platea Alta": {
+          "Precio": 70000,
+          "Filas": 70,
+          "Columnas": 200,
+          "Disponibilidad": 14000
+        },
+        "Platea Baja": {
+          "Precio": 80000,
+          "Filas": 50,
+          "Columnas": 300,
+          "Disponibilidad": 15000
+        }
+      }
+    }
+  },
+  "3": {
+    "Artista": "Coldplay",
+    "Sede": "Estadio Único La Plata",
+    "Fechas": {
+      "21/07/25": {
+        "Campo": {
+          "Precio": 75000,
+          "Disponibilidad": 20000
+        },
+        "Platea Alta": {
+          "Precio": 60000,
+          "Filas": 60,
+          "Columnas": 150,
+          "Disponibilidad": 9000
+        },
+        "Platea Baja": {
+          "Precio": 70000,
+          "Filas": 40,
+          "Columnas": 200,
+          "Disponibilidad": 8000
+        }
+      }
+    }
+  }
 }
